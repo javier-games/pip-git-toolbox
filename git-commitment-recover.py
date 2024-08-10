@@ -12,9 +12,10 @@ def main(def_args=None):
         def_args = sys.argv[1:]
     args = arguments(def_args)
 
-    # Get repository commit history.
+    # Convert the source path to WSL format if necessary
+    source_path = convert_windows_path_to_wsl_path(args.source)
 
-    repo = git.Repo(args.source)
+    repo = git.Repo(source_path)
     commits_list = []
     for commit in repo.iter_commits():
         commits_list.append({
@@ -22,7 +23,6 @@ def main(def_args=None):
             'message': commit.message.strip(),
             'user_email': commit.author.email
         })
-
     # Get Filter email.
 
     if args.email_filter is not None:
@@ -41,7 +41,7 @@ def main(def_args=None):
         target_directory = args.target
     else:
         current_date = datetime.now()
-        target_directory = args.source + '-commitment-recovery-' + current_date.strftime('%Y-%m-%d-%H-%M-%S')
+        target_directory = source_path + '-commitment-recovery-' + current_date.strftime('%Y-%m-%d-%H-%M-%S')
 
     os.mkdir(target_directory)
     os.chdir(target_directory)
@@ -58,6 +58,13 @@ def main(def_args=None):
 
         if email_filter == commit['user_email']:
             git_commit(commit['date'], message)
+
+def convert_windows_path_to_wsl_path(path):
+    if sys.platform == 'linux' and os.path.exists('/mnt/c') and len(path) > 1 and path[1] == ':':
+        drive_letter = path[0].lower()
+        wsl_path = f'/mnt/{drive_letter}{path[2:].replace("\\", "/")}'
+        return wsl_path
+    return path
 
 
 def git_commit(date, message):
