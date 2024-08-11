@@ -69,3 +69,9 @@ def delete_files(directory, ignore_list=None):
                 run(['rm', '-rf', path])
             else:
                 run(['del', '/s', '/q', path])
+
+
+def create_missing_directories(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)

@@ -12,6 +12,10 @@ This script  is designed to create a new Git repository by replaying the commit 
 repository. It adjusts the commit timestamps to align with a specified start date while preserving the relative 
 differences in days between commits.
 
+## History Builder
+
+Takes from the source path the files and creates a new repository commiting them in by their last modification date.
+
 ## Requirements
 
 ### Python
