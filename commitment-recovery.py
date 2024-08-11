@@ -3,8 +3,9 @@ import sys
 import git
 import argparse
 import subprocess
+
 from datetime import datetime
-from subprocess import Popen
+from utils import to_wsl, run
 
 
 def main(def_args=None):
@@ -13,9 +14,15 @@ def main(def_args=None):
     args = arguments(def_args)
 
     # Convert the source path to WSL format if necessary
-    source_path = convert_windows_path_to_wsl_path(args.source)
+    source_path = to_wsl(args.source)
 
-    repo = git.Repo(source_path)
+    # Get repository commit history.
+    try:
+        repo = git.Repo(source_path)
+    except git.exc.NoSuchPathError:
+        print(f"Source repository path '{source_path}' does not exist.")
+        return None
+
     commits_list = []
     for commit in repo.iter_commits():
         commits_list.append({
@@ -23,6 +30,7 @@ def main(def_args=None):
             'message': commit.message.strip(),
             'user_email': commit.author.email
         })
+
     # Get Filter email.
 
     if args.email_filter is not None:
@@ -59,24 +67,12 @@ def main(def_args=None):
         if email_filter == commit['user_email']:
             git_commit(commit['date'], message)
 
-def convert_windows_path_to_wsl_path(path):
-    if sys.platform == 'linux' and os.path.exists('/mnt/c') and len(path) > 1 and path[1] == ':':
-        drive_letter = path[0].lower()
-        wsl_path = f'/mnt/{drive_letter}{path[2:].replace("\\", "/")}'
-        return wsl_path
-    return path
-
 
 def git_commit(date, message):
     with open(os.path.join(os.getcwd(), 'README.md'), 'a') as file:
         file.write(message + '\n\n')
     run(['git', 'add', '.'])
     run(['git', 'commit', '-m', '"%s"' % message, '--date', date.strftime('"%Y-%m-%d %H:%M:%S"')])
-
-
-def run(commands):
-    Popen(commands).wait()
-
 
 def arguments(argsval):
     parser = argparse.ArgumentParser()
