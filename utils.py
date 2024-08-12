@@ -10,7 +10,8 @@ def run(commands):
 def to_wsl(path):
     if sys.platform == 'linux' and os.path.exists('/mnt/c') and len(path) > 1 and path[1] == ':':
         drive_letter = path[0].lower()
-        wsl_path = f'/mnt/{drive_letter}{path[2:].replace("\\", "/")}'
+        relative_path = path[2:].replace("\\", "/");
+        wsl_path = f'/mnt/{drive_letter}{relative_path}'
         return wsl_path
     return path
 
