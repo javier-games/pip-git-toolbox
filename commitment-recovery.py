@@ -28,17 +28,19 @@ def main(def_args=None):
         commits_list.append({
             'date': commit.authored_datetime,
             'message': commit.message.strip(),
-            'user_email': commit.author.email
+            'user_email': commit.author.email,
+            'hash': commit.hexsha
         })
 
-    # Get Filter email.
-
-    if args.email_filter is not None:
-        email_filter = args.email_filter
+    # Get Filter emails.
+    email_filters = []
+    if args.email_filters is not None:
+        email_filters = args.email_filters.split(',')
     else:
         try:
             email_filter = subprocess.check_output(['git', 'config', 'user.email']).decode('utf-8').strip()
-            print("Email filter is: {}".format(email_filter))
+            email_filters.append(email_filter)
+            print("Email filter is: {}".format(email_filters))
         except subprocess.CalledProcessError as e:
             print("Error getting git config:", e)
             return None
@@ -60,11 +62,12 @@ def main(def_args=None):
 
     for commit in reversed(commits_list):
         if args.hide_message:
-            message = commit['date'].strftime('%Y-%m-%d %H:%M:%S')
+            message = commit['date'].strftime('%Y/%m/%d %H:%M:%S')
         else:
-            message = commit['message']
+            message = (commit['date'].strftime('%Y/%m/%d (%H:%M:%S): ') + commit['message'] +
+                       '\nsource: ' + commit['hash'])
 
-        if email_filter == commit['user_email']:
+        if commit['user_email'] in email_filters:
             git_commit(commit['date'], message)
 
 
@@ -72,7 +75,7 @@ def git_commit(date, message):
     with open(os.path.join(os.getcwd(), 'README.md'), 'a') as file:
         file.write(message + '\n\n')
     run(['git', 'add', '.'])
-    run(['git', 'commit', '-m', '"%s"' % message, '--date', date.strftime('"%Y-%m-%d %H:%M:%S"')])
+    run(['git', 'commit', '-m', '%s' % message, '--date', date.strftime('"%Y-%m-%d %H:%M:%S"')])
 
 def arguments(argsval):
     parser = argparse.ArgumentParser()
@@ -85,11 +88,11 @@ def arguments(argsval):
                         required=False,
                         help="""Path where to create the target repository. If none, target repository will be created
                         with the name of the source repository and the -commitment-recovery-{Date} suffix.""")
-    parser.add_argument('-ef', '--email_filter',
+    parser.add_argument('-ef', '--email_filters',
                         type=str,
                         required=False,
-                        help="""Only commits signed with the given email will be considered.
-                        If is none then it uses the current git config user email.""")
+                        help="""Comma-separated list of emails. Only commits signed with the given emails will be considered.
+                        If none, it uses the current git config user email.""")
     parser.add_argument('-hm', '--hide_message',
                         action='store_true',
                         help="""Does not copy the commit message to the target repository.""")
