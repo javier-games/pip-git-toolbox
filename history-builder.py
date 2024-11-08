@@ -6,7 +6,6 @@ import shutil
 from datetime import datetime
 from utils import to_wsl, run, create_missing_directories
 
-
 def main(def_args=None):
 
     if def_args is None:
@@ -48,7 +47,6 @@ def main(def_args=None):
             os.utime(target_file_path, (time_stamp, time_stamp))
             run(['git', 'add', target_file_path])
         run(['git', 'commit', '-m', f"Added files in {date}", '--date', date])
-
 
 def arguments(argsval):
     parser = argparse.ArgumentParser()

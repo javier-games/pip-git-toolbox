@@ -1,11 +1,17 @@
 import os
 import sys
 import shutil
-
+import subprocess
 from subprocess import Popen
 
 def run(commands):
     Popen(commands).wait()
+
+def run_command(command, capture_output=False):
+    result = subprocess.run(command, capture_output=capture_output, text=True, shell=True)
+    if capture_output:
+        return result.stdout
+    return result.returncode
 
 def to_wsl(path):
     if sys.platform == 'linux' and os.path.exists('/mnt/c') and len(path) > 1 and path[1] == ':':

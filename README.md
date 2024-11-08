@@ -1,5 +1,9 @@
 # Git Toolbox
 
+## Prune Files
+
+This script automates the cleanup of unused or deleted files from a Git repository. It identifies files that have been deleted throughout the repository’s history and removes them to reduce the repository size. The script also runs Git garbage collection to optimize repository performance. Here’s a breakdown of its main functionality:
+
 ## Commitment Recovery
 
 The script effectively replicates the commit history from one repository to another, filtering commits based on the 
